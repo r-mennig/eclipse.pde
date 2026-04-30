@@ -23,7 +23,6 @@ import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.core.services.nls.Translation;
 import org.eclipse.e4.tools.emf.ui.common.ModelEditorPreferences;
 import org.eclipse.e4.tools.emf.ui.internal.Messages;
-import org.eclipse.e4.tools.emf.ui.internal.common.xml.AnnotationAccess;
 import org.eclipse.e4.tools.emf.ui.internal.common.xml.EMFDocumentResourceMediator;
 import org.eclipse.e4.tools.emf.ui.internal.common.xml.XMLConfiguration;
 import org.eclipse.e4.tools.emf.ui.internal.common.xml.XMLPartitionScanner;
@@ -42,7 +41,6 @@ import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.SourceViewer;
-import org.eclipse.jface.text.source.VerticalRuler;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -84,9 +82,8 @@ public class XmiTab extends Composite implements IAdaptable {
 	@PostConstruct
 	protected void postConstruct() {
 		final AnnotationModel model = new AnnotationModel();
-		final VerticalRuler verticalRuler = new VerticalRuler(VERTICAL_RULER_WIDTH, new AnnotationAccess(resourcePool));
 		final int styles = SWT.V_SCROLL | SWT.H_SCROLL | SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION;
-		sourceViewer = new SourceViewer(this, verticalRuler, styles);
+		sourceViewer = new SourceViewer(this, null, styles);
 		sourceViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		sourceViewer.configure(new XMLConfiguration(resourcePool));
@@ -99,7 +96,6 @@ public class XmiTab extends Composite implements IAdaptable {
 		partitioner.connect(document);
 		document.setDocumentPartitioner(partitioner);
 		sourceViewer.setDocument(document);
-		verticalRuler.setModel(model);
 
 		emfDocumentProvider.setValidationChangedCallback(() -> {
 			model.removeAllAnnotations();
