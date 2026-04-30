@@ -16,6 +16,7 @@
 package org.eclipse.e4.tools.emf.ui.internal.common.component.tabs;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.core.di.annotations.Optional;
@@ -33,6 +34,7 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
+import org.eclipse.jface.text.IFindReplaceTarget;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.TextSelection;
@@ -42,16 +44,14 @@ import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.text.source.VerticalRuler;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 
-public class XmiTab extends Composite {
+public class XmiTab extends Composite implements IAdaptable {
 
 	private static final String ORG_ECLIPSE_E4_TOOLS_MODELEDITOR_FILTEREDTREE_ENABLED_XMITAB_DISABLED = "org.eclipse.e4.tools.modeleditor.filteredtree.enabled.xmitab.disabled";//$NON-NLS-1$
 	private static final int VERTICAL_RULER_WIDTH = 20;
@@ -73,8 +73,6 @@ public class XmiTab extends Composite {
 	@Translation
 	protected Messages Messages;
 
-	private Text text;
-	protected int offsetStart;
 	private SourceViewer sourceViewer;
 
 	@Inject
@@ -85,20 +83,6 @@ public class XmiTab extends Composite {
 
 	@PostConstruct
 	protected void postConstruct() {
-		text = new Text(this, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		text.setMessage(Messages.XmiTab_TypeTextToSearch);
-		text.addKeyListener(KeyListener.keyPressedAdapter(e -> {
-			if (e.keyCode != SWT.CR) {
-				offsetStart = 0;
-			} else { // search next occurrence
-				offsetStart = searchAndHighlight(text.getText(), offsetStart);
-			}
-		}));
-		text.addModifyListener(e -> {
-			offsetStart = searchAndHighlight(text.getText(), offsetStart);
-		});
-
 		final AnnotationModel model = new AnnotationModel();
 		final VerticalRuler verticalRuler = new VerticalRuler(VERTICAL_RULER_WIDTH, new AnnotationAccess(resourcePool));
 		final int styles = SWT.V_SCROLL | SWT.H_SCROLL | SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION;
@@ -179,31 +163,26 @@ public class XmiTab extends Composite {
 	}
 
 	public void paste() {
-		if (isFilterTextFocused()) {
-			text.paste();
-		} else {
-			sourceViewer.getTextWidget().paste();
-		}
+		sourceViewer.getTextWidget().paste();
 	}
 
 	public void copy() {
-		if (isFilterTextFocused()) {
-			text.copy();
-		} else {
-			sourceViewer.getTextWidget().copy();
-		}
+		sourceViewer.getTextWidget().copy();
 	}
 
 	public void cut() {
-		if (isFilterTextFocused()) {
-			text.cut();
-		} else {
-			sourceViewer.getTextWidget().cut();
-		}
+		sourceViewer.getTextWidget().cut();
 	}
 
-	private boolean isFilterTextFocused() {
-		return text.isFocusControl();
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T getAdapter(Class<T> adapter) {
+		if (adapter == IFindReplaceTarget.class) {
+			if (sourceViewer != null) {
+				return (T) sourceViewer.getFindReplaceTarget();
+			}
+		}
+		return null;
 	}
 
 }

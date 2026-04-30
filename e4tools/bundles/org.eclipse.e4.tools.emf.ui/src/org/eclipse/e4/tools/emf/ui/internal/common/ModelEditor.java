@@ -38,7 +38,9 @@ import org.eclipse.core.databinding.observable.masterdetail.IObservableFactory;
 import org.eclipse.core.databinding.observable.set.WritableSet;
 import org.eclipse.core.databinding.property.list.IListProperty;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.Adapters;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -248,7 +250,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-public class ModelEditor implements IGotoObject {
+public class ModelEditor implements IGotoObject, IAdaptable {
 	private static final String ORG_ECLIPSE_E4_TOOLS_MODELEDITOR_FILTEREDTREE_ENABLED_XMITAB_DISABLED = "org.eclipse.e4.tools.modeleditor.filteredtree.enabled.xmitab.disabled";//$NON-NLS-1$
 
 	public static final String CSS_CLASS_KEY = "org.eclipse.e4.ui.css.CssClassName"; //$NON-NLS-1$
@@ -2137,6 +2139,17 @@ public class ModelEditor implements IGotoObject {
 			viewer.refresh(true);
 		}
 
+	}
+
+	@Override
+	public <T> T getAdapter(Class<T> adapter) {
+		if (xmiTab != null) {
+			T adapted = Adapters.adapt(xmiTab, adapter);
+			if (adapted != null) {
+				return adapted;
+			}
+		}
+		return null;
 	}
 
 }
