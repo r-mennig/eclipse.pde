@@ -13,16 +13,20 @@
  ******************************************************************************/
 package org.eclipse.e4.tools.emf.editor3x;
 
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.e4.tools.compat.parts.DIEditorPart;
 import org.eclipse.e4.tools.emf.ui.common.IModelResource.ModelListener;
 import org.eclipse.e4.tools.emf.ui.internal.wbm.ApplicationModelEditor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.texteditor.FindReplaceAction;
+import org.osgi.framework.FrameworkUtil;
 
 @SuppressWarnings("restriction")
 public class E4WorkbenchModelEditor extends
-	DIEditorPart<ApplicationModelEditor> {
+DIEditorPart<ApplicationModelEditor> {
 	private UndoAction undoAction;
 	private RedoAction redoAction;
 
@@ -58,10 +62,16 @@ public class E4WorkbenchModelEditor extends
 		redoAction = new RedoAction(getComponent().getModelProvider());
 		redoAction.setActionDefinitionId(IWorkbenchCommandConstants.EDIT_REDO);
 
+		FindReplaceAction findReplaceAction = new FindReplaceAction(
+				Platform.getResourceBundle(FrameworkUtil.getBundle(getClass())),
+				"find_replace_action_", this); //$NON-NLS-1$
+		findReplaceAction.setActionDefinitionId(IWorkbenchCommandConstants.EDIT_FIND_AND_REPLACE);
+
 		getEditorSite().getActionBars().setGlobalActionHandler(
-			ActionFactory.UNDO.getId(), undoAction);
+				ActionFactory.UNDO.getId(), undoAction);
 		getEditorSite().getActionBars().setGlobalActionHandler(
-			ActionFactory.REDO.getId(), redoAction);
+				ActionFactory.REDO.getId(), redoAction);
+		getEditorSite().getActionBars().setGlobalActionHandler(ActionFactory.FIND.getId(), findReplaceAction);
 	}
 
 	@Override
@@ -79,5 +89,17 @@ public class E4WorkbenchModelEditor extends
 		}
 
 		super.dispose();
+	}
+
+	@Override
+	public <T> T getAdapter(Class<T> adapter) {
+		ApplicationModelEditor component = getComponent();
+		if (component != null) {
+			T adapted = Adapters.adapt(component, adapter);
+			if (adapted != null) {
+				return adapted;
+			}
+		}
+		return super.getAdapter(adapter);
 	}
 }
